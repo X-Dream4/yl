@@ -22,8 +22,6 @@ createApp({
             wallpapers: ["https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=80"],
             settingsTab: 'api', apiConfig: { baseUrl: '', apiKey: '', models: [], activeModel: '' }, storageUsed: 0, storageDetails: [], storageDonutStyle: { background: 'conic-gradient(#eee 0% 100%)' },
             contactsData: { worlds: [], characters: [], myPersonas: [], wbCategories: [], worldbooks: [], relationships: [], layouts: {} },
-            
-            // 全局锁屏配置
             lockConfig: { enableLockScreen: false, wallpaper: '', enablePassword: false, pwdType: 'num', pwdNum: '', pwdQA_Q: '', pwdQA_A: '', pwdPattern: '' },
             isLocked: false, showPwdInput: false, enteredPwd: ''
         });
@@ -31,25 +29,29 @@ createApp({
         const isThemeModalOpen = ref(false); const isClockModalOpen = ref(false); const hrDeg = ref(0), minDeg = ref(0), secDeg = ref(0); const currentWpIndex = ref(0); const fileInput = ref(null); let currentUploadTarget = null, currentUploadData = null; const currentDate = ref(new Date());
 
         const loadData = async () => {
-            const savedState = await localforage.getItem('ins_desktop_v8_state');
-            if (savedState) Object.assign(state, savedState);
+            try {
+                const savedState = await localforage.getItem('ins_desktop_v8_state');
+                if (savedState) Object.assign(state, savedState);
+            } catch(e) { console.error('加载缓存数据失败', e); }
             
-            // 【极其严密的数据防御机制，防止旧设备旧语法白屏】
+            // 【终极安全防御：防止旧数据破坏结构导致手机白屏】
             if(state.capsuleOpacity === undefined) state.capsuleOpacity = 1;
-            if(state.apiConfig === undefined) state.apiConfig = { baseUrl: '', apiKey: '', models: [], activeModel: '' };
-            if(state.contactsData === undefined) state.contactsData = {};
-            if(state.contactsData.worlds === undefined) state.contactsData.worlds = [{ id: 'w_default', name: '主宇宙' }];
-            if(state.contactsData.characters === undefined) state.contactsData.characters = [];
-            if(state.contactsData.myPersonas === undefined) state.contactsData.myPersonas = [];
-            if(state.contactsData.wbCategories === undefined) state.contactsData.wbCategories = [{ id: 'c_default', name: '通用设定' }];
-            if(state.contactsData.worldbooks === undefined) state.contactsData.worldbooks = [];
-            if(state.contactsData.relationships === undefined) state.contactsData.relationships = [];
-            if(state.contactsData.layouts === undefined) state.contactsData.layouts = {};
+            if(!state.apiConfig) state.apiConfig = { baseUrl: '', apiKey: '', models: [], activeModel: '' };
+            
+            if(!state.contactsData) state.contactsData = {};
+            if(!state.contactsData.worlds) state.contactsData.worlds = [{ id: 'w_default', name: '主宇宙' }];
+            if(!state.contactsData.characters) state.contactsData.characters = [];
+            if(!state.contactsData.myPersonas) state.contactsData.myPersonas = [];
+            if(!state.contactsData.wbCategories) state.contactsData.wbCategories = [{ id: 'c_default', name: '通用设定' }];
+            if(!state.contactsData.worldbooks) state.contactsData.worldbooks = [];
+            if(!state.contactsData.relationships) state.contactsData.relationships = [];
+            if(!state.contactsData.layouts) state.contactsData.layouts = {};
 
-            if(state.lockConfig === undefined) state.lockConfig = { enableLockScreen: false, wallpaper: '', enablePassword: false, pwdType: 'num', pwdNum: '', pwdQA_Q: '', pwdQA_A: '', pwdPattern: '' };
-            if(state.lockConfig.pwdType === undefined) state.lockConfig.pwdType = 'num';
-
-            if(state.lockConfig.enableLockScreen) { state.isLocked = true; state.showPwdInput = false; state.enteredPwd = ''; }
+            if(!state.lockConfig) state.lockConfig = { enableLockScreen: false, wallpaper: '', enablePassword: false, pwdType: 'num', pwdNum: '', pwdQA_Q: '', pwdQA_A: '', pwdPattern: '' };
+            if(!state.lockConfig.pwdType) state.lockConfig.pwdType = 'num';
+            
+            // 系统开启时，如果启用了锁屏则上锁
+            if(state.lockConfig.enableLockScreen) { state.isLocked = true; state.showPwdInput = false; state.enteredPwd = ''; patternState.path = []; }
 
             setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 100);
         };
@@ -59,18 +61,18 @@ createApp({
         const getClockNumberStyle = (index) => ({ left: `${50 + 38 * Math.cos((index * 30 - 90) * (Math.PI / 180))}%`, top: `${50 + 38 * Math.sin((index * 30 - 90) * (Math.PI / 180))}%` });
         const calendarGrid = computed(() => { const d = currentDate.value; const year = d.getFullYear(); const month = d.getMonth(); const firstDay = new Date(year, month, 1).getDay(); const daysInMonth = new Date(year, month + 1, 0).getDate(); const grid = []; let week = []; for(let i=0; i<firstDay; i++) week.push(''); for(let i=1; i<=daysInMonth; i++) { week.push(i); if(week.length === 7) { grid.push(week); week = []; } } if(week.length > 0) { while(week.length < 7) week.push(''); grid.push(week); } return grid; });
 
-        // 时间格式化用于锁屏
+        // 时间格式化
         const formatTime = (date) => { const h = String(date.getHours()).padStart(2, '0'); const m = String(date.getMinutes()).padStart(2, '0'); return `${h}:${m}`; };
         const formatDate = (date) => { const m = date.getMonth()+1; const d = date.getDate(); const days = ['星期日','星期一','星期二','星期三','星期四','星期五','星期六']; return `${m}月${d}日 ${days[date.getDay()]}`; };
 
-        // 锁屏上滑解锁逻辑
+        // 滑动解锁逻辑
         const unlockState = reactive({ startY: 0, currentY: 0, isSwiping: false });
         const onLockTouchStart = (e) => { unlockState.startY = e.touches[0].clientY; unlockState.isSwiping = true; };
         const onLockTouchMove = (e) => { if(unlockState.isSwiping) unlockState.currentY = e.touches[0].clientY; };
         const onLockTouchEnd = (e) => { 
             unlockState.isSwiping = false; 
             if (unlockState.startY - e.changedTouches[0].clientY > 100) {
-                if (state.lockConfig.enablePassword) { state.showPwdInput = true; state.enteredPwd = ''; } else { state.isLocked = false; }
+                if (state.lockConfig.enablePassword) { state.showPwdInput = true; state.enteredPwd = ''; patternState.path = []; } else { state.isLocked = false; }
             }
             unlockState.startY = 0; unlockState.currentY = 0;
         };
@@ -81,8 +83,46 @@ createApp({
             else if (state.lockConfig.pwdType === 'pattern') correct = (state.enteredPwd === state.lockConfig.pwdPattern);
             else if (state.lockConfig.pwdType === 'qa') correct = (state.enteredPwd === state.lockConfig.pwdQA_A);
 
-            if (correct) { state.isLocked = false; state.showPwdInput = false; state.enteredPwd = ''; setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 100); } 
-            else { alert('密码错误！'); state.enteredPwd = ''; }
+            if (correct) { state.isLocked = false; state.showPwdInput = false; state.enteredPwd = ''; patternState.path = []; setTimeout(() => { if(window.lucide) lucide.createIcons(); }, 100); } 
+            else { alert('密码错误！'); state.enteredPwd = ''; patternState.path = []; }
+        };
+
+        // ==== 3x3 图案密码渲染引擎 ====
+        const patternState = reactive({ isDrawing: false, path: [], currentX: 0, currentY: 0, mode: '' });
+        const patternPathPoints = computed(() => patternState.path.map(idx => `${40 + (idx % 3) * 80},${40 + Math.floor(idx / 3) * 80}`).join(' '));
+        
+        const startPattern = (e, mode) => { patternState.isDrawing = true; patternState.path = []; patternState.mode = mode; movePattern(e); };
+        const movePattern = (e) => {
+            if(!patternState.isDrawing) return;
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+            const container = e.currentTarget;
+            const rect = container.getBoundingClientRect();
+            patternState.currentX = clientX - rect.left;
+            patternState.currentY = clientY - rect.top;
+            
+            if (patternState.currentX >= 0 && patternState.currentX <= 240 && patternState.currentY >= 0 && patternState.currentY <= 240) {
+                const col = Math.floor(patternState.currentX / 80);
+                const row = Math.floor(patternState.currentY / 80);
+                const dist = Math.hypot(patternState.currentX - (40 + col * 80), patternState.currentY - (40 + row * 80));
+                if (dist < 30) {
+                    const idx = row * 3 + col;
+                    if (!patternState.path.includes(idx)) patternState.path.push(idx);
+                }
+            }
+        };
+        const endPattern = (e) => {
+            if(!patternState.isDrawing) return;
+            patternState.isDrawing = false;
+            const pwd = patternState.path.join('');
+            if(patternState.mode === 'set') {
+                if(pwd.length < 4) { alert('图案至少需要连接 4 个点'); patternState.path = []; return; }
+                state.lockConfig.pwdPattern = pwd;
+                setTimeout(() => { patternState.path = []; }, 800);
+            } else if (patternState.mode === 'unlock') {
+                state.enteredPwd = pwd;
+                verifyLockPwd();
+            }
         };
 
         const addEmoji = () => { const txt = prompt('请输入表情或文字：'); if(txt) state.emojiWallItems.push({ id: Date.now(), text: txt, top: Math.random() * 65 + 10, left: Math.random() * 80 + 5, rot: (Math.random() - 0.5) * 60, size: Math.random() * 12 + 16 }); };
@@ -111,6 +151,6 @@ createApp({
 
         onMounted(() => { loadData(); requestAnimationFrame(updateClock); });
 
-        return { state, isThemeModalOpen, isClockModalOpen, hrDeg, minDeg, secDeg, fileInput, currentWpIndex, currentDate, calendarGrid, getClockNumberStyle, setTheme, triggerUpload, handleFileChange, openApp, closeApp, editApp, editClockUrl, resetClock, editCapsuleBgUrl, addEmoji, clearEmojis, formatTime, formatDate, unlockState, onLockTouchStart, onLockTouchMove, onLockTouchEnd, verifyLockPwd, ...beautifyMethods, ...settingsMethods, ...contactsMethods };
+        return { state, isThemeModalOpen, isClockModalOpen, hrDeg, minDeg, secDeg, fileInput, currentWpIndex, currentDate, calendarGrid, getClockNumberStyle, setTheme, triggerUpload, handleFileChange, openApp, closeApp, editApp, editClockUrl, resetClock, editCapsuleBgUrl, addEmoji, clearEmojis, formatTime, formatDate, unlockState, onLockTouchStart, onLockTouchMove, onLockTouchEnd, verifyLockPwd, patternState, patternPathPoints, startPattern, movePattern, endPattern, ...beautifyMethods, ...settingsMethods, ...contactsMethods };
     }
 }).mount('#app');

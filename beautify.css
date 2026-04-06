@@ -59,7 +59,7 @@
     align-items: center; 
     justify-content: center;
     box-shadow: inset 0 2px 5px rgba(0,0,0,0.02); 
-    overflow: visible; /* 关键1：改为 visible，绝不裁剪任何竖向内容 */
+    overflow: visible;
     position: relative;
     padding: 20px; 
 }
@@ -71,8 +71,8 @@
 .preview-item-capsule {
     flex: none !important; 
     width: 100% !important; 
-    height: auto !important; /* 关键2：高度不再锁死，自动根据内容往下撑开 */
-    min-height: 160px !important; /* 保证保底高度与桌面一致 */
+    height: auto !important;
+    min-height: 160px !important;
     transform: none !important; 
     margin: 0;
     pointer-events: none; 
@@ -83,7 +83,7 @@
     flex: none !important;
     width: 160px !important;
     height: 160px !important;
-    transform: none !important; /* 完全 1:1 展示，不缩放 */
+    transform: none !important; 
     margin: 0;
     pointer-events: none;
 }
