@@ -25,17 +25,16 @@ window.useContactsLogic = function(state) {
 
     const groupedWbs = computed(() => {
         if (!db.value.wbCategories) return [];
-        return db.value.wbCategories.map(c => ({ category: c, wbs: db.value.worldbooks.filter(w => w.categoryId === c.id) }));
+        return db.value.wbCategories.map(c => ({ category: c, wbs: (db.value.worldbooks || []).filter(w => w.categoryId === c.id) }));
     });
 
     const openAddWorld = () => { const name = prompt('请输入世界分类名称：'); if (name && name.trim()) db.value.worlds.push({ id: 'w_' + Date.now(), name: name.trim() }); };
     const openAddWbCat = () => { const name = prompt('请输入世界书分类名称：'); if (name && name.trim()) db.value.wbCategories.push({ id: 'c_' + Date.now(), name: name.trim() }); };
-    
     const openAddChar = (isMe = false) => { charForm.isMe = isMe; charForm.worldId = db.value.worlds[0]?.id || ''; charForm.name = ''; charForm.avatar = ''; charForm.persona = ''; modals.char = true; };
     const triggerAvatarUpload = (targetObj) => { const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.onchange = (e) => { const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (ev) => { targetObj.avatar = ev.target.result; }; reader.readAsDataURL(file); }; input.click(); };
 
     const saveChar = () => {
-        if(!charForm.worldId) return alert('请选择所属的世界分类'); 
+        if(!charForm.worldId && !charForm.isMe) return alert('请选择所属的世界分类'); 
         if(!charForm.name.trim()) return alert('请输入姓名'); 
         const newChar = { id: 'char_' + Date.now(), isMe: charForm.isMe, worldId: charForm.worldId, name: charForm.name.trim(), avatar: charForm.avatar, persona: charForm.persona.trim(), phone: '', email: '', chatAcc: '', chatPwd: '' };
         if(charForm.isMe) db.value.myPersonas.unshift(newChar); else db.value.characters.unshift(newChar);
@@ -78,13 +77,12 @@ window.useContactsLogic = function(state) {
     const canvasNodes = computed(() => {
         if(!activeChar.value) return [];
         const layout = db.value.layouts[activeChar.value.id] || {};
-        const nodes = [];
-        nodes.push({ id: activeChar.value.id, name: activeChar.value.name, avatar: activeChar.value.avatar, x: layout[activeChar.value.id]?.x || 150, y: layout[activeChar.value.id]?.y || 130 });
-        db.value.relationships.forEach(r => {
+        const nodes = [{ id: activeChar.value.id, name: activeChar.value.name, avatar: activeChar.value.avatar, x: layout[activeChar.value.id]?.x || 150, y: layout[activeChar.value.id]?.y || 130 }];
+        (db.value.relationships || []).forEach(r => {
             if(r.sourceId === activeChar.value.id || r.targetId === activeChar.value.id) {
                 const otherId = r.sourceId === activeChar.value.id ? r.targetId : r.sourceId;
                 if(!nodes.find(n => n.id === otherId)) {
-                    const c = [...db.value.characters, ...db.value.myPersonas].find(c => c.id === otherId);
+                    const c = [...(db.value.characters||[]), ...(db.value.myPersonas||[])].find(c => c.id === otherId);
                     if(c) nodes.push({ id: c.id, name: c.name, avatar: c.avatar, x: layout[c.id]?.x || 50 + Math.random()*200, y: layout[c.id]?.y || 50 + Math.random()*150 });
                 }
             }
@@ -96,7 +94,7 @@ window.useContactsLogic = function(state) {
         if(!activeChar.value) return [];
         const nodes = canvasNodes.value;
         const edges = [];
-        db.value.relationships.forEach(r => {
+        (db.value.relationships || []).forEach(r => {
             const n1 = nodes.find(n => n.id === r.sourceId);
             const n2 = nodes.find(n => n.id === r.targetId);
             if(n1 && n2) edges.push({ ...r, x1: n1.x, y1: n1.y - 10, x2: n2.x, y2: n2.y - 10 });
@@ -108,12 +106,11 @@ window.useContactsLogic = function(state) {
         if(!activeChar.value) return [];
         const connectedIds = canvasEdges.value.map(e => e.sourceId === activeChar.value.id ? e.targetId : e.sourceId);
         connectedIds.push(activeChar.value.id);
-        const pool = [...db.value.myPersonas, ...db.value.characters.filter(c => c.worldId === activeChar.value.worldId)];
+        const pool = [...(db.value.myPersonas||[]), ...(db.value.characters||[]).filter(c => c.worldId === activeChar.value.worldId)];
         return pool.filter(c => !connectedIds.includes(c.id));
     });
 
     const confirmAddRel = (targetId) => { db.value.relationships.push({ id: 'rel_'+Date.now(), sourceId: activeChar.value.id, targetId: targetId, sourceView: '认识', targetView: '认识' }); modals.relSelect = false; };
-
     const handleNodeClick = (nodeId) => {
         if(selectedNodeId.value === null) { selectedNodeId.value = nodeId; } 
         else {
@@ -132,7 +129,6 @@ window.useContactsLogic = function(state) {
         relEditForm.targetView = isSourceMe ? edge.targetView : edge.sourceView; 
         modals.relEdit = true;
     };
-
     const saveRelEdit = () => {
         const edge = db.value.relationships.find(r => r.id === relEditForm.relId);
         if(edge) {
