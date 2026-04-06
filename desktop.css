@@ -6,7 +6,9 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 
 .desktop-container { width: 100vw; height: 100vh; padding: 20px 16px; display: flex; flex-direction: column; gap: 26px; overflow-y: auto; background-color: var(--bg-color); background-size: cover; background-position: center;}
 .glass-widget { border-radius: 28px; background-color: var(--widget-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: var(--glass-border); box-shadow: var(--shadow-outer); transition: all 0.3s; }
-.capsule-widget { flex: 0 0 160px; display: flex; padding: 10px; gap: 10px; position: relative; background-size: cover; background-position: center; overflow: hidden;}
+.capsule-widget { flex: 0 0 160px; display: flex; padding: 10px; gap: 10px; position: relative; overflow: hidden; z-index: 1;}
+/* 专门为胶囊背景图设立的独立图层，不影响内部其他元素的透明度 */
+.capsule-bg-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-size: cover; background-position: center; pointer-events: none; z-index: -1; }
 
 /* --- Capsule: Chat --- */
 .chat-time-input { text-align: center; font-size: 11px; color: var(--text-sub); margin-bottom: 8px; width: 100%; }
@@ -17,23 +19,9 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 .chat-bubble span { outline: none; display: inline-block; min-width: 15px; color: var(--text-main); }
 .chat-row.left .chat-bubble { background-color: var(--bubble-left); box-shadow: 0 2px 5px rgba(0,0,0,0.03);}
 .chat-row.right .chat-bubble { background-color: var(--bubble-right); box-shadow: 0 2px 5px rgba(0,0,0,0.03); text-align: right;}
-/* 优化假聊天底部输入栏：缩小并上移 */
-.chat-bottom-bar { 
-    margin-top: auto; 
-    margin-bottom: 4px; /* 增加底部外边距，使其整体向上移 */
-    display: flex; 
-    align-items: center; 
-    gap: 4px; 
-    background: var(--widget-bg-solid); 
-    padding: 3px 4px; /* 减小内边距，让条变窄 */
-    border-radius: 14px; 
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04); 
-}
-/* 稍微调小图标按钮的尺寸 */
+.chat-bottom-bar { margin-top: auto; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; background: var(--widget-bg-solid); padding: 3px 4px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
 .chat-icon-btn { width: 18px; height: 18px; border-radius: 50%; background: var(--bg-color); display: flex; justify-content: center; align-items: center; color: var(--text-sub);}
-/* 稍微调小输入框字体和内部间距 */
 .chat-input-fake { flex: 1; font-size: 9px; padding-left: 4px; }
-/* 稍微调小发送按钮尺寸 */
 .chat-send-btn { width: 22px; height: 18px; border-radius: 6px; background: var(--text-main); color: var(--bg-color); display: flex; justify-content: center; align-items: center; }
 
 .image-section { flex: 1; position: relative; border-radius: 20px; overflow: hidden; }
@@ -72,6 +60,7 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 .middle-row { display: flex; gap: 16px; flex: 0 0 160px; }
 
 /* ==== 小组件样式区 ==== */
+
 /* 吧唧(徽章) 微微顶光 + 内圈边缘厚度 */
 .badge-widget { flex: 1; border-radius: 50%; background-color: var(--widget-bg-solid); position: relative; cursor: pointer; display: flex; justify-content: center; align-items: center; overflow: hidden; box-shadow: 4px 8px 12px rgba(0,0,0,0.12), -2px -2px 6px rgba(255,255,255,0.8); }
 .dark-mode .badge-widget { box-shadow: 4px 8px 12px rgba(0,0,0,0.6), -2px -2px 6px rgba(255,255,255,0.05); }
@@ -82,16 +71,23 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 .custom-image-widget { flex: 1; cursor: pointer; overflow: hidden; padding: 0; display: flex; justify-content: center; align-items: center;}
 .full-cover-img { width: 100%; height: 100%; object-fit: cover; border-radius: 28px;}
 
-.avatar-card-widget { flex: 1; display: flex; justify-content: space-evenly; align-items: center; cursor: pointer; padding: 10px;}
-.avatar-item { display: flex; flex-direction: column; align-items: center; gap: 8px;}
-.ac-img { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 2px solid var(--bg-color);}
-.avatar-item span { font-size: 11px; color: var(--text-main); font-weight: 500; outline: none;}
+/* 双头像全新排版：大圆头像、错位布局、透明输入条 */
+.avatar-card-widget { flex: 1; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 14px; position: relative; }
+.avatar-title-input { width: 100%; text-align: center; font-size: 13px; font-weight: 600; color: var(--text-main); background: transparent; z-index: 5; }
+.avatars-container { width: 100%; flex: 1; position: relative; margin: 5px 0; }
+.avatar-item { position: absolute; display: flex; flex-direction: column; align-items: center; gap: 6px;}
+.avatar-item.pos-left { top: 0; left: 0; }
+.avatar-item.pos-right { bottom: 0; right: 0; }
+.ac-img-large { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid var(--bg-color); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+/* 修改为完全透明的纯文字输入框 */
+.avatar-name-input { width: 60px; text-align: center; font-size: 10px; color: var(--text-main); background: transparent; padding: 2px 4px; border: none; outline: none; }
+.dark-mode .avatar-name-input { background: transparent; }
 
 .clock-widget { flex: 1; background-color: transparent; border: none; border-radius: 50%; position: relative; display: flex; justify-content: center; align-items: center; cursor: pointer; background-size: cover; background-position: center; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
 .clock-widget::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 50%; pointer-events: none; background: repeating-conic-gradient( var(--text-main) 0deg, var(--text-main) 1deg, transparent 1deg, transparent 6deg ); -webkit-mask: radial-gradient(transparent 68%, black 70%); mask: radial-gradient(transparent 68%, black 70%); opacity: 0.6; }
 .clock-widget::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 50%; pointer-events: none; background: repeating-conic-gradient( var(--text-main) 0deg, var(--text-main) 2.5deg, transparent 2.5deg, transparent 30deg ); -webkit-mask: radial-gradient(transparent 65%, black 67%); mask: radial-gradient(transparent 65%, black 67%); opacity: 0.9; }
 .clock-face { width: 100%; height: 100%; position: relative; border-radius: 50%; pointer-events: none; }
-.clock-number-icon { width: 28px; height: 28px; border-radius: 50%; position: absolute; transform: translate(-50%, -50%); object-fit: contain; /* 去除了背景色、边框和阴影，支持全透明 */ }
+.clock-number-icon { width: 28px; height: 28px; border-radius: 50%; position: absolute; transform: translate(-50%, -50%); object-fit: contain; }
 .hand { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; background: var(--text-main); border-radius: 4px;}
 .hand-hr { width: 4px; height: 28px; margin-left: -2px; }
 .hand-min { width: 3px; height: 40px; margin-left: -1.5px; opacity: 0.8;}
@@ -148,85 +144,14 @@ input { outline: none; border: none; background: transparent; color: var(--text-
     background: rgba(0,0,0,0.15);
 }
 
-.chat-time-input {
-    text-align: center;
-    font-size: 11px;
-    color: var(--text-sub);
-    margin-bottom: 4px;
-    width: 100%;
-    flex-shrink: 0;
-}
+.chat-time-input { text-align: center; font-size: 11px; color: var(--text-sub); margin-bottom: 4px; width: 100%; flex-shrink: 0; }
+.chat-messages { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-start; }
+.chat-row { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; width: 100%; transform: scale(0.96); transform-origin: top left; }
+.chat-row.right { flex-direction: row-reverse; transform-origin: top right; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; cursor: pointer; background-color: var(--widget-bg-solid); box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; }
+.chat-bubble { padding: 7px 10px; border-radius: 14px; font-size: 10px; max-width: calc(100% - 40px); width: fit-content; word-wrap: break-word; }
+.chat-bubble span { outline: none; display: inline-block; min-width: 15px; color: var(--text-main); }
+.chat-row.left .chat-bubble { background-color: var(--bubble-left); box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+.chat-row.right .chat-bubble { background-color: var(--bubble-right); box-shadow: 0 2px 5px rgba(0,0,0,0.03); text-align: right; }
+.chat-bottom-bar { margin-top: auto; margin-bottom: 2px; display: flex; align-items: center; gap: 4px; background: var(--widget-bg-solid); padding: 3px 4px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); flex-shrink: 0; }
 
-.chat-messages {
-    flex: 1;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-
-.chat-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 6px;
-    margin-bottom: 6px;
-    width: 100%;
-    transform: scale(0.96);
-    transform-origin: top left;
-}
-
-.chat-row.right {
-    flex-direction: row-reverse;
-    transform-origin: top right;
-}
-
-.avatar {
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    object-fit: cover;
-    cursor: pointer;
-    background-color: var(--widget-bg-solid);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    flex-shrink: 0;
-}
-
-.chat-bubble {
-    padding: 7px 10px;
-    border-radius: 14px;
-    font-size: 10px;
-    max-width: calc(100% - 40px);
-    width: fit-content;
-    word-wrap: break-word;
-}
-
-.chat-bubble span {
-    outline: none;
-    display: inline-block;
-    min-width: 15px;
-    color: var(--text-main);
-}
-
-.chat-row.left .chat-bubble {
-    background-color: var(--bubble-left);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-}
-
-.chat-row.right .chat-bubble {
-    background-color: var(--bubble-right);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-    text-align: right;
-}
-
-.chat-bottom-bar {
-    margin-top: auto;
-    margin-bottom: 2px;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: var(--widget-bg-solid);
-    padding: 3px 4px;
-    border-radius: 14px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
-    flex-shrink: 0;
-}
