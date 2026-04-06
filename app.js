@@ -29,9 +29,23 @@ createApp({
         const loadData = async () => {
             const savedState = await localforage.getItem('ins_desktop_v8_state');
             if (savedState) Object.assign(state, savedState);
+            
+            // 安全深度防御机制：防止旧数据结构不完整引发崩溃
             if(state.capsuleOpacity === undefined) state.capsuleOpacity = 1;
             if(!state.apiConfig) state.apiConfig = { baseUrl: '', apiKey: '', models: [], activeModel: '' };
-            if(!state.contactsData) state.contactsData = { worlds: [], characters: [], myPersonas: [], wbCategories: [], worldbooks: [], relationships: [], layouts: {} };
+            if(!state.contactsData) state.contactsData = {};
+            if(!state.contactsData.worlds) state.contactsData.worlds = [];
+            if(!state.contactsData.characters) state.contactsData.characters = [];
+            if(!state.contactsData.myPersonas) state.contactsData.myPersonas = [];
+            if(!state.contactsData.wbCategories) state.contactsData.wbCategories = [];
+            if(!state.contactsData.worldbooks) state.contactsData.worldbooks = [];
+            if(!state.contactsData.relationships) state.contactsData.relationships = [];
+            if(!state.contactsData.layouts) state.contactsData.layouts = {};
+
+            // 如果连分类都被删没了，给个兜底
+            if(state.contactsData.worlds.length === 0) state.contactsData.worlds.push({ id: 'w_default', name: '主宇宙' });
+            if(state.contactsData.wbCategories.length === 0) state.contactsData.wbCategories.push({ id: 'c_default', name: '通用设定' });
+
             setTimeout(() => { lucide.createIcons(); }, 100);
         };
         watch(state, (newState) => { localforage.setItem('ins_desktop_v8_state', JSON.parse(JSON.stringify(newState))); }, { deep: true });
