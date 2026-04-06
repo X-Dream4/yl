@@ -7,19 +7,18 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 .desktop-container { width: 100vw; height: 100vh; padding: 20px 16px; display: flex; flex-direction: column; gap: 26px; overflow-y: auto; background-color: var(--bg-color); background-size: cover; background-position: center;}
 .glass-widget { border-radius: 28px; background-color: var(--widget-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: var(--glass-border); box-shadow: var(--shadow-outer); transition: all 0.3s; }
 .capsule-widget { flex: 0 0 160px; display: flex; padding: 10px; gap: 10px; position: relative; overflow: hidden; z-index: 1;}
-/* 专门为胶囊背景图设立的独立图层，不影响内部其他元素的透明度 */
 .capsule-bg-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-size: cover; background-position: center; pointer-events: none; z-index: -1; }
 
-/* --- Capsule: Chat --- */
-.chat-time-input { text-align: center; font-size: 11px; color: var(--text-sub); margin-bottom: 8px; width: 100%; }
-.chat-row { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; width: 100%; }
-.chat-row.right { flex-direction: row-reverse; }
-.avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; cursor: pointer; background-color: var(--widget-bg-solid); box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0;}
-.chat-bubble { padding: 8px 12px; border-radius: 16px; font-size: 11px; max-width: calc(100% - 44px); width: fit-content; word-wrap: break-word; }
+.chat-time-input { text-align: center; font-size: 11px; color: var(--text-sub); margin-bottom: 8px; width: 100%; flex-shrink: 0; }
+.chat-messages { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-start; }
+.chat-row { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; width: 100%; transform: scale(0.96); transform-origin: top left; }
+.chat-row.right { flex-direction: row-reverse; transform-origin: top right; }
+.avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; cursor: pointer; background-color: var(--widget-bg-solid); box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; }
+.chat-bubble { padding: 7px 10px; border-radius: 14px; font-size: 10px; max-width: calc(100% - 40px); width: fit-content; word-wrap: break-word; }
 .chat-bubble span { outline: none; display: inline-block; min-width: 15px; color: var(--text-main); }
-.chat-row.left .chat-bubble { background-color: var(--bubble-left); box-shadow: 0 2px 5px rgba(0,0,0,0.03);}
-.chat-row.right .chat-bubble { background-color: var(--bubble-right); box-shadow: 0 2px 5px rgba(0,0,0,0.03); text-align: right;}
-.chat-bottom-bar { margin-top: auto; margin-bottom: 4px; display: flex; align-items: center; gap: 4px; background: var(--widget-bg-solid); padding: 3px 4px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); }
+.chat-row.left .chat-bubble { background-color: var(--bubble-left); box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
+.chat-row.right .chat-bubble { background-color: var(--bubble-right); box-shadow: 0 2px 5px rgba(0,0,0,0.03); text-align: right; }
+.chat-bottom-bar { margin-top: auto; margin-bottom: 2px; display: flex; align-items: center; gap: 4px; background: var(--widget-bg-solid); padding: 3px 4px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); flex-shrink: 0; }
 .chat-icon-btn { width: 18px; height: 18px; border-radius: 50%; background: var(--bg-color); display: flex; justify-content: center; align-items: center; color: var(--text-sub);}
 .chat-input-fake { flex: 1; font-size: 9px; padding-left: 4px; }
 .chat-send-btn { width: 22px; height: 18px; border-radius: 6px; background: var(--text-main); color: var(--bg-color); display: flex; justify-content: center; align-items: center; }
@@ -28,12 +27,10 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 .img-card.single-card { width: 82%; height: 82%; border-radius: 16px; object-fit: cover; position: absolute; top: 9%; left: 9%; box-shadow: none; border: none; transform: rotate(4deg); cursor: pointer; transition: transform 0.2s; }
 .img-card.single-card:active { transform: rotate(4deg) scale(0.96); }
 
-/* --- Capsule: Emoji Wall --- */
 .emoji-wall { position: absolute; top: 0; left: 0; right: 0; bottom: 0; cursor: pointer; overflow: hidden;}
 .emoji-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: var(--text-sub); opacity: 0.6; font-size: 12px; pointer-events: none;}
 .emoji-item { position: absolute; white-space: nowrap; color: var(--text-main); font-weight: bold; text-shadow: 1px 1px 3px var(--widget-bg-solid); pointer-events: none;}
 
-/* --- Capsule: Calendar --- */
 .jp-calendar { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; gap: 20px; padding: 10px 20px;}
 .cal-left { display: flex; flex-direction: column; align-items: center; border-right: 1px solid var(--text-sub); padding-right: 20px; }
 .cal-month { font-size: 14px; color: var(--text-sub); letter-spacing: 2px; }
@@ -45,9 +42,7 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 .cal-row.header span { color: var(--text-main); font-weight: bold; }
 .today { background: var(--text-main); color: var(--bg-color) !important; border-radius: 50%; font-weight: bold; }
 
-/* --- Capsule: ID Card --- */
 .id-card-widget { display: flex; width: 100%; height: 100%; padding: 15px 20px; align-items: center; gap: 20px; }
-/* 无边框的一寸照片比例(5:7) */
 .id-photo { width: 85px; height: 119px; border-radius: 6px; overflow: hidden; background: var(--widget-bg-solid); border: none; box-shadow: 0 4px 10px rgba(0,0,0,0.1); cursor: pointer; position: relative; flex-shrink: 0;}
 .id-photo img { width: 100%; height: 100%; object-fit: cover; }
 .id-photo-hint { position: absolute; bottom: 5px; width: 100%; text-align: center; font-size: 10px; color: var(--text-sub);}
@@ -56,12 +51,7 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 .id-line .label { font-size: 10px; color: var(--text-sub); width: 35px; text-transform: uppercase; letter-spacing: 1px; }
 .id-line input { flex: 1; font-size: 13px; font-weight: 500; padding: 0 5px; color: var(--text-main); background: transparent; border: none; outline: none; }
 
-
 .middle-row { display: flex; gap: 16px; flex: 0 0 160px; }
-
-/* ==== 小组件样式区 ==== */
-
-/* 吧唧(徽章) 微微顶光 + 内圈边缘厚度 */
 .badge-widget { flex: 1; border-radius: 50%; background-color: var(--widget-bg-solid); position: relative; cursor: pointer; display: flex; justify-content: center; align-items: center; overflow: hidden; box-shadow: 4px 8px 12px rgba(0,0,0,0.12), -2px -2px 6px rgba(255,255,255,0.8); }
 .dark-mode .badge-widget { box-shadow: 4px 8px 12px rgba(0,0,0,0.6), -2px -2px 6px rgba(255,255,255,0.05); }
 .badge-widget::after { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 50%; pointer-events: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1), inset 0 2px 4px rgba(255,255,255,0.8), inset 0 -4px 8px rgba(0,0,0,0.25); background: linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 30%); }
@@ -71,7 +61,6 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 .custom-image-widget { flex: 1; cursor: pointer; overflow: hidden; padding: 0; display: flex; justify-content: center; align-items: center;}
 .full-cover-img { width: 100%; height: 100%; object-fit: cover; border-radius: 28px;}
 
-/* 双头像全新排版：大圆头像、错位布局、透明输入条 */
 .avatar-card-widget { flex: 1; display: flex; flex-direction: column; justify-content: space-between; align-items: center; padding: 14px; position: relative; }
 .avatar-title-input { width: 100%; text-align: center; font-size: 13px; font-weight: 600; color: var(--text-main); background: transparent; z-index: 5; }
 .avatars-container { width: 100%; flex: 1; position: relative; margin: 5px 0; }
@@ -79,9 +68,7 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 .avatar-item.pos-left { top: 0; left: 0; }
 .avatar-item.pos-right { bottom: 0; right: 0; }
 .ac-img-large { width: 56px; height: 56px; border-radius: 50%; object-fit: cover; border: 2px solid var(--bg-color); cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
-/* 修改为完全透明的纯文字输入框 */
 .avatar-name-input { width: 60px; text-align: center; font-size: 10px; color: var(--text-main); background: transparent; padding: 2px 4px; border: none; outline: none; }
-.dark-mode .avatar-name-input { background: transparent; }
 
 .clock-widget { flex: 1; background-color: transparent; border: none; border-radius: 50%; position: relative; display: flex; justify-content: center; align-items: center; cursor: pointer; background-size: cover; background-position: center; -webkit-touch-callout: none; user-select: none; -webkit-user-select: none; }
 .clock-widget::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; border-radius: 50%; pointer-events: none; background: repeating-conic-gradient( var(--text-main) 0deg, var(--text-main) 1deg, transparent 1deg, transparent 6deg ); -webkit-mask: radial-gradient(transparent 68%, black 70%); mask: radial-gradient(transparent 68%, black 70%); opacity: 0.6; }
@@ -93,13 +80,7 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 .hand-min { width: 3px; height: 40px; margin-left: -1.5px; opacity: 0.8;}
 .hand-sec { width: 2px; height: 45px; margin-left: -1px; background: #888888; } 
 .clock-center { width: 10px; height: 10px; border-radius: 50%; background: var(--text-main); position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; border: 2px solid var(--bg-color);}
-.hand-img { position: absolute; bottom: 50%; left: 50%; transform-origin: bottom; object-fit: contain;}
-.hand-hr-img { width: 10px; height: 32px; margin-left: -5px;}
-.hand-min-img { width: 8px; height: 44px; margin-left: -4px;}
-.hand-sec-img { width: 6px; height: 50px; margin-left: -3px;}
-.clock-center-img { width: 16px; height: 16px; border-radius: 50%; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; object-fit: cover;}
 
-/* APP网格 */
 .app-grid { flex: 1; display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr); gap: 0px; padding: 0px; }
 .app-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; }
 .app-item:active .app-icon { transform: scale(0.92); }
@@ -124,34 +105,17 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 .clock-edit-actions button { width: 100%; font-size: 10px; padding: 4px 0; border-radius: 6px; border: none; background: var(--widget-bg-solid); color: var(--text-main); cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,0.1);}
 .close-modal { width: 100%; padding: 14px; margin-top: 10px; border-radius: 16px; border: none; background: var(--text-main); color: var(--bg-color); cursor: pointer; font-weight: 600; font-size: 15px;}
 .danger-btn { background: #dcdcdc; color: #333;}
-.dark-mode .danger-btn { background: #444; color: #ddd;}
 .hidden-file-input { display: none; }
 
-.chat-section {
-    flex: 2;
-    background: rgba(255, 255, 255, 0.3);
-    backdrop-filter: blur(6px);
-    border-radius: 20px;
-    display: flex;
-    flex-direction: column;
-    padding: 8px;
-    position: relative;
-    border: var(--glass-border);
-    overflow: hidden;
-}
-
-.dark-mode .chat-section {
-    background: rgba(0,0,0,0.15);
-}
-
-.chat-time-input { text-align: center; font-size: 11px; color: var(--text-sub); margin-bottom: 4px; width: 100%; flex-shrink: 0; }
-.chat-messages { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-start; }
-.chat-row { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; width: 100%; transform: scale(0.96); transform-origin: top left; }
-.chat-row.right { flex-direction: row-reverse; transform-origin: top right; }
-.avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; cursor: pointer; background-color: var(--widget-bg-solid); box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex-shrink: 0; }
-.chat-bubble { padding: 7px 10px; border-radius: 14px; font-size: 10px; max-width: calc(100% - 40px); width: fit-content; word-wrap: break-word; }
-.chat-bubble span { outline: none; display: inline-block; min-width: 15px; color: var(--text-main); }
-.chat-row.left .chat-bubble { background-color: var(--bubble-left); box-shadow: 0 2px 5px rgba(0,0,0,0.03); }
-.chat-row.right .chat-bubble { background-color: var(--bubble-right); box-shadow: 0 2px 5px rgba(0,0,0,0.03); text-align: right; }
-.chat-bottom-bar { margin-top: auto; margin-bottom: 2px; display: flex; align-items: center; gap: 4px; background: var(--widget-bg-solid); padding: 3px 4px; border-radius: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.04); flex-shrink: 0; }
-
+/* 全新：锁屏界面特效样式 */
+.lock-screen-wrap { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99999; display: flex; flex-direction: column; align-items: center; background-color: var(--bg-color); background-size: cover; background-position: center; transition: transform 0.3s ease; }
+.ls-time { font-size: 64px; font-weight: 300; color: #fff; text-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-top: 15vh; }
+.ls-date { font-size: 16px; font-weight: 500; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); margin-top: 5px; }
+.ls-swipe-text { position: absolute; bottom: 40px; font-size: 14px; font-weight: 500; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); animation: pulse 2s infinite; }
+@keyframes pulse { 0% { opacity: 0.4; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-8px); } 100% { opacity: 0.4; transform: translateY(0); } }
+.ls-pwd-container { position: absolute; top: 0; left: 0; right: 0; bottom: 0; backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); background: rgba(0,0,0,0.45); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; z-index: 10; animation: fadeIn 0.3s ease;}
+.ls-pwd-title { color: #fff; font-size: 18px; font-weight: 600; text-shadow: 0 2px 10px rgba(0,0,0,0.2);}
+.ls-pwd-input { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.4); padding: 16px 24px; border-radius: 20px; color: #fff; font-size: 18px; text-align: center; width: 260px; outline: none; box-shadow: 0 4px 15px rgba(0,0,0,0.1);}
+.ls-pwd-input::placeholder { color: rgba(255,255,255,0.5); }
+.ls-pwd-btn { background: #fff; color: #333; padding: 14px 40px; border-radius: 16px; font-size: 15px; font-weight: 600; cursor: pointer; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15);}
+.ls-pwd-back { position: absolute; bottom: 40px; color: rgba(255,255,255,0.8); font-size: 14px; cursor: pointer; padding: 10px;}

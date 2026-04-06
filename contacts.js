@@ -6,13 +6,12 @@ window.useContactsLogic = function(state) {
     const wbForm = reactive({ categoryId: '', keywords: '', content: '' });
 
     const activeChar = ref(null);
-    const pwdVisibility = reactive({ chat: false, lockNum: false, lockPat: false, lockQA: false });
+    const pwdVisibility = reactive({ chat: false });
 
     const canvasRef = ref(null);
     const selectedNodeId = ref(null);
     const relEditForm = reactive({ relId: '', sourceView: '', targetView: '' });
 
-    // 【致命BUG修复】：使用 computed 动态追踪状态树，防止底层异步加载覆盖后引用断裂！
     const db = computed(() => state.contactsData);
 
     const refreshIcons = () => { nextTick(() => { if (window.lucide) window.lucide.createIcons(); }); };
@@ -21,10 +20,7 @@ window.useContactsLogic = function(state) {
     const groupedChars = computed(() => {
         if (!db.value.worlds) return [];
         const allChars = [...(db.value.myPersonas || []), ...(db.value.characters || [])];
-        return db.value.worlds.map(w => ({
-            world: w,
-            chars: allChars.filter(c => c.worldId === w.id)
-        }));
+        return db.value.worlds.map(w => ({ world: w, chars: allChars.filter(c => c.worldId === w.id) }));
     });
 
     const groupedWbs = computed(() => {
@@ -35,29 +31,13 @@ window.useContactsLogic = function(state) {
     const openAddWorld = () => { const name = prompt('请输入世界分类名称：'); if (name && name.trim()) db.value.worlds.push({ id: 'w_' + Date.now(), name: name.trim() }); };
     const openAddWbCat = () => { const name = prompt('请输入世界书分类名称：'); if (name && name.trim()) db.value.wbCategories.push({ id: 'c_' + Date.now(), name: name.trim() }); };
     
-    const openAddChar = (isMe = false) => { 
-        charForm.isMe = isMe;
-        charForm.worldId = db.value.worlds[0]?.id || ''; 
-        charForm.name = ''; charForm.avatar = ''; charForm.persona = ''; 
-        modals.char = true; 
-    };
-    
-    const triggerAvatarUpload = (targetObj) => { 
-        const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; 
-        input.onchange = (e) => { 
-            const file = e.target.files[0]; if(!file) return; 
-            const reader = new FileReader(); reader.onload = (ev) => { targetObj.avatar = ev.target.result; }; reader.readAsDataURL(file); 
-        }; input.click(); 
-    };
+    const openAddChar = (isMe = false) => { charForm.isMe = isMe; charForm.worldId = db.value.worlds[0]?.id || ''; charForm.name = ''; charForm.avatar = ''; charForm.persona = ''; modals.char = true; };
+    const triggerAvatarUpload = (targetObj) => { const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.onchange = (e) => { const file = e.target.files[0]; if(!file) return; const reader = new FileReader(); reader.onload = (ev) => { targetObj.avatar = ev.target.result; }; reader.readAsDataURL(file); }; input.click(); };
 
     const saveChar = () => {
         if(!charForm.worldId) return alert('请选择所属的世界分类'); 
         if(!charForm.name.trim()) return alert('请输入姓名'); 
-        const newChar = { 
-            id: 'char_' + Date.now(), isMe: charForm.isMe, worldId: charForm.worldId, 
-            name: charForm.name.trim(), avatar: charForm.avatar, persona: charForm.persona.trim(),
-            phone: '', email: '', chatAcc: '', chatPwd: '', lockPwdNum: '', lockPwdPat: '', lockPwdQA: ''
-        };
+        const newChar = { id: 'char_' + Date.now(), isMe: charForm.isMe, worldId: charForm.worldId, name: charForm.name.trim(), avatar: charForm.avatar, persona: charForm.persona.trim(), phone: '', email: '', chatAcc: '', chatPwd: '' };
         if(charForm.isMe) db.value.myPersonas.unshift(newChar); else db.value.characters.unshift(newChar);
         modals.char = false;
     };
@@ -68,14 +48,7 @@ window.useContactsLogic = function(state) {
     const openCharDetail = (char) => { 
         if(char.phone === undefined) char.phone=''; if(char.email === undefined) char.email='';
         if(char.chatAcc === undefined) char.chatAcc=''; if(char.chatPwd === undefined) char.chatPwd='';
-        
-        if(char.lockPwdNum === undefined) char.lockPwdNum = char.lockPwd || '';
-        if(char.lockPwdPat === undefined) char.lockPwdPat = '';
-        if(char.lockPwdQA === undefined) char.lockPwdQA = '';
-
-        activeChar.value = char; 
-        pwdVisibility.chat = false; pwdVisibility.lockNum = false; pwdVisibility.lockPat = false; pwdVisibility.lockQA = false;
-        
+        activeChar.value = char; pwdVisibility.chat = false;
         if(!db.value.layouts[char.id]) db.value.layouts[char.id] = {};
         if(!db.value.layouts[char.id][char.id]) db.value.layouts[char.id][char.id] = {x: 150, y: 130};
         refreshIcons();
@@ -90,7 +63,6 @@ window.useContactsLogic = function(state) {
             c.email = Math.random().toString(36).substring(2, 8) + '@youl.com';
             c.chatAcc = c.name.substring(0,3).toLowerCase() + Math.floor(Math.random() * 10000);
             c.chatPwd = Math.random().toString(36).substring(2, 8);
-            c.lockPwdNum = Math.floor(1000 + Math.random() * 9000).toString();
         }, 800);
     };
 
@@ -140,15 +112,11 @@ window.useContactsLogic = function(state) {
         return pool.filter(c => !connectedIds.includes(c.id));
     });
 
-    const confirmAddRel = (targetId) => {
-        db.value.relationships.push({ id: 'rel_'+Date.now(), sourceId: activeChar.value.id, targetId: targetId, sourceView: '认识', targetView: '认识' });
-        modals.relSelect = false;
-    };
+    const confirmAddRel = (targetId) => { db.value.relationships.push({ id: 'rel_'+Date.now(), sourceId: activeChar.value.id, targetId: targetId, sourceView: '认识', targetView: '认识' }); modals.relSelect = false; };
 
     const handleNodeClick = (nodeId) => {
-        if(selectedNodeId.value === null) {
-            selectedNodeId.value = nodeId; 
-        } else {
+        if(selectedNodeId.value === null) { selectedNodeId.value = nodeId; } 
+        else {
             if(selectedNodeId.value !== nodeId) {
                 const exists = db.value.relationships.find(r => (r.sourceId===selectedNodeId.value && r.targetId===nodeId) || (r.sourceId===nodeId && r.targetId===selectedNodeId.value));
                 if(!exists) db.value.relationships.push({ id: 'rel_'+Date.now(), sourceId: selectedNodeId.value, targetId: nodeId, sourceView: '认识', targetView: '认识' });
@@ -182,23 +150,13 @@ window.useContactsLogic = function(state) {
             const rect = canvasRef.value.getBoundingClientRect();
             const clientX = e.touches ? e.touches[0].clientX : e.clientX;
             const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-            let x = clientX - rect.left;
-            let y = clientY - rect.top;
-            x = Math.max(30, Math.min(x, rect.width - 30));
-            y = Math.max(30, Math.min(y, rect.height - 30));
-            
+            let x = clientX - rect.left; let y = clientY - rect.top;
+            x = Math.max(30, Math.min(x, rect.width - 30)); y = Math.max(30, Math.min(y, rect.height - 30));
             if(!db.value.layouts[activeChar.value.id]) db.value.layouts[activeChar.value.id] = {};
             db.value.layouts[activeChar.value.id][draggingNodeId] = {x, y};
         }
     };
     const endDrag = () => { draggingNodeId = null; };
 
-    // 这里 db 导出会自动在模板里解包，所以 index.html 里所有 db.xxx 照样能用
-    return { 
-        contactsTab, modals, charForm, wbForm, groupedChars, groupedWbs, db, 
-        openAddWorld, openAddWbCat, openAddChar, triggerAvatarUpload, saveChar, openAddWb, saveWb,
-        activeChar, pwdVisibility, openCharDetail, callApiToGenerate, deleteActiveChar,
-        canvasRef, canvasNodes, canvasEdges, availableRelChars, confirmAddRel, handleNodeClick, selectedNodeId,
-        openRelEdit, relEditForm, saveRelEdit, startDrag, onCanvasMove, endDrag
-    };
+    return { contactsTab, modals, charForm, wbForm, groupedChars, groupedWbs, db, openAddWorld, openAddWbCat, openAddChar, triggerAvatarUpload, saveChar, openAddWb, saveWb, activeChar, pwdVisibility, openCharDetail, callApiToGenerate, deleteActiveChar, canvasRef, canvasNodes, canvasEdges, availableRelChars, confirmAddRel, handleNodeClick, selectedNodeId, openRelEdit, relEditForm, saveRelEdit, startDrag, onCanvasMove, endDrag };
 };
