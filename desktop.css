@@ -9,6 +9,9 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 .capsule-widget { flex: 0 0 160px; display: flex; padding: 10px; gap: 10px; position: relative; overflow: hidden; z-index: 1;}
 .capsule-bg-layer { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background-size: cover; background-position: center; pointer-events: none; z-index: -1; }
 
+.chat-section { flex: 2; display: flex; flex-direction: column; min-width: 0; background: rgba(255,255,255,0.88); border-radius: 18px; padding: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px); }
+.dark-mode .chat-section { background: rgba(255,255,255,0.12); }
+
 .chat-time-input { text-align: center; font-size: 11px; color: var(--text-sub); margin-bottom: 8px; width: 100%; flex-shrink: 0; }
 .chat-messages { flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-start; }
 .chat-row { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 6px; width: 100%; transform: scale(0.96); transform-origin: top left; }
@@ -23,9 +26,13 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 .chat-input-fake { flex: 1; font-size: 9px; padding-left: 4px; }
 .chat-send-btn { width: 22px; height: 18px; border-radius: 6px; background: var(--text-main); color: var(--bg-color); display: flex; justify-content: center; align-items: center; }
 
-.image-section { flex: 1; position: relative; border-radius: 20px; overflow: hidden; }
+.image-section { flex: 1; position: relative; border-radius: 20px; overflow: hidden; min-width: 0; }
 .img-card.single-card { width: 82%; height: 82%; border-radius: 16px; object-fit: cover; position: absolute; top: 9%; left: 9%; box-shadow: none; border: none; transform: rotate(4deg); cursor: pointer; transition: transform 0.2s; }
 .img-card.single-card:active { transform: rotate(4deg) scale(0.96); }
+
+.widget-mini-badge { position: absolute; right: 10%; bottom: 8%; width: 34px; height: 34px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.12); z-index: 3; overflow: hidden; cursor: pointer; display: flex; align-items: center; justify-content: center; background: #ffffff; }
+.widget-mini-badge img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.widget-mini-badge:active { transform: scale(0.95); }
 
 .emoji-wall { position: absolute; top: 0; left: 0; right: 0; bottom: 0; cursor: pointer; overflow: hidden;}
 .emoji-placeholder { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; color: var(--text-sub); opacity: 0.6; font-size: 12px; pointer-events: none;}
@@ -113,7 +120,7 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 .hidden-file-input { display: none; }
 
 /* 锁屏界面特效样式 */
-.lock-screen-wrap { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99999; display: flex; flex-direction: column; align-items: center; background-color: var(--bg-color); background-size: cover; background-position: center; transition: transform 0.3s ease; }
+.lock-screen-wrap { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 99999; display: flex; flex-direction: column; align-items: center; background-color: var(--bg-color); background-size: cover; background-position: center; transition: transform 0.3s ease; touch-action: none; overscroll-behavior: contain; -webkit-user-select: none; user-select: none; }
 .ls-time { font-size: 64px; font-weight: 300; color: #fff; text-shadow: 0 4px 15px rgba(0,0,0,0.3); margin-top: 15vh; }
 .ls-date { font-size: 16px; font-weight: 500; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); margin-top: 5px; }
 .ls-swipe-text { position: absolute; bottom: 40px; font-size: 14px; font-weight: 500; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); animation: pulse 2s infinite; }
@@ -136,3 +143,6 @@ input { outline: none; border: none; background: transparent; color: var(--text-
 /* 锁屏界面中的特殊配色 */
 .lock-screen-wrap .pattern-dot { background: rgba(255,255,255,0.4); }
 .lock-screen-wrap .pattern-dot.active { background: #fff; box-shadow: 0 0 15px rgba(255,255,255,0.5); }
+
+.preview-item-capsule .chat-section { flex: 2 !important; }
+.preview-item-capsule .image-section { flex: 1 !important; min-width: 0; }

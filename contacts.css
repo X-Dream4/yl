@@ -43,7 +43,7 @@
 .c-card { background: var(--widget-bg-solid); border-radius: 24px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); border: var(--glass-border); display: flex; flex-direction: column; gap: 14px;}
 .c-card-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(150,150,150,0.1); padding-bottom: 10px;}
 .c-card-title { font-size: 14px; font-weight: 600; color: var(--text-main); }
-.c-api-btn { font-size: 11px; background: rgba(150,150,150,0.1); color: var(--text-main); padding: 4px 10px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; gap: 4px;}
+.c-api-btn { font-size: 11px; background: rgba(150,150,150,0.1); color: var(--text-main); padding: 6px 12px; border-radius: 12px; cursor: pointer; display: flex; align-items: center; justify-content: center; white-space: nowrap; }
 .c-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
 .c-label { color: var(--text-sub); width: 75px; flex-shrink: 0; font-size: 11px;}
 .c-value { flex: 1; color: var(--text-main); text-align: right; border: none; background: transparent; outline: none; font-weight: 500; font-family: inherit;}
@@ -58,21 +58,25 @@
 .c-node-name { font-size: 10px; font-weight: 600; color: var(--text-sub); background: var(--widget-bg-solid); padding: 2px 6px; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); pointer-events: none;}
 .c-add-rel-btn { width: 100%; padding: 12px; border-radius: 16px; background: rgba(150,150,150,0.1); color: var(--text-main); font-size: 12px; font-weight: 600; cursor: pointer; border: none; margin-top: 10px;}
 
-/* 韩系 INS 极简删除按钮 */
 .c-btn-delete-ins { width: 100%; padding: 14px; border-radius: 18px; border: 1px solid rgba(255, 77, 79, 0.2); background: rgba(255, 77, 79, 0.04); color: #ff4d4f; font-size: 13px; font-weight: 600; display: flex; justify-content: center; align-items: center; gap: 8px; cursor: pointer; transition: background 0.2s; box-shadow: 0 2px 8px rgba(255, 77, 79, 0.05);}
 .c-btn-delete-ins:active { background: rgba(255, 77, 79, 0.1); }
 .dark-mode .c-btn-delete-ins { background: rgba(255, 77, 79, 0.08); border-color: rgba(255, 77, 79, 0.15); }
 
-/* 通用弹窗表单 */
+/* 全屏表单弹窗 */
 .c-modal { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: var(--bg-color); z-index: 200; display: flex; flex-direction: column; animation: slideUp 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-.c-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px
-; border-bottom: 1px solid rgba(150,150,150,0.1); }
+.c-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 20px; border-bottom: 1px solid rgba(150,150,150,0.1); }
 .c-modal-title { font-size: 16px; font-weight: 600; color: var(--text-main); }
 .c-btn-close, .c-btn-save { font-size: 14px; font-weight: 600; cursor: pointer; padding: 6px 12px; border-radius: 12px; }
 .c-btn-close { color: var(--text-sub); }
 .c-btn-save { color: var(--bg-color); background: var(--text-main); }
 .c-modal-body { flex: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+
+/* ==== 全新：中间弹出弹窗 (INS 风气泡) ==== */
+.c-modal-centered { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.4); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); z-index: 300; display: flex; justify-content: center; align-items: center; padding: 20px; animation: fadeIn 0.2s ease; }
+.c-modal-centered-content { background: var(--popup-bg); border-radius: 28px; padding: 24px; width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); animation: popIn 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); border: var(--glass-border); }
+@keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
 .c-avatar-upload { width: 80px; height: 80px; border-radius: 24px; background: var(--widget-bg-solid); border: 2px dashed rgba(150,150,150,0.3); margin: 0 auto 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; overflow: hidden; position: relative;}
 .c-avatar-upload img { width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0;}
 .c-avatar-upload svg { color: var(--text-sub); z-index: 1;}
@@ -80,4 +84,4 @@
 .c-form-item label { font-size: 12px; font-weight: 600; color: var(--text-sub); margin-left: 4px; }
 .c-input, .c-select, .c-textarea { width: 100%; background: var(--widget-bg-solid); border: 1px solid rgba(150,150,150,0.15); border-radius: 16px; padding: 16px; font-size: 14px; color: var(--text-main); outline: none; transition: border-color 0.2s; box-shadow: inset 0 2px 4px rgba(0,0,0,0.01); }
 .c-input:focus, .c-select:focus, .c-textarea:focus { border-color: var(--text-main); }
-.c-textarea { resize: none; min-height: 120px; line-height: 1.5; }
+.c-textarea { resize: none; min-height: 160px; line-height: 1.7; font-size: 15px; }
