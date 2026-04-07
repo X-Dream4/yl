@@ -76,22 +76,55 @@
             <div class="ca-bottom-bar"><div class="ca-tab-btn" :class="{active: chatState.activeTab === 'msg'}" @click="chatState.activeTab = 'msg'"><i data-lucide="message-circle"></i><span>消息</span></div><div class="ca-tab-btn" :class="{active: chatState.activeTab === 'channel'}" @click="chatState.activeTab = 'channel'"><i data-lucide="hash"></i><span>频道</span></div><div class="ca-tab-btn" :class="{active: chatState.activeTab === 'contact'}" @click="chatState.activeTab = 'contact'"><i data-lucide="users"></i><span>联系人</span></div><div class="ca-tab-btn" :class="{active: chatState.activeTab === 'moment'}" @click="chatState.activeTab = 'moment'"><i data-lucide="compass"></i><span>动态</span></div></div>
 
             <!-- 详细聊天界面 (新增) -->
-            <div class="ca-detail-wrap" v-if="chatState.isDetailOpen">
+            <div class="ca-detail-wrap" v-if="chatState.isDetailOpen" :style="{ backgroundImage: activeConvSettings.beautify.bg ? `url(${activeConvSettings.beautify.bg})` : 'none' }">
+                <!-- 动态载入美化CSS -->
+                <component :is="'style'" v-if="activeConvSettings.beautify.customCss">{{ activeConvSettings.beautify.customCss }}</component>
+                
                 <div class="ca-detail-header">
                     <img :src="activeConv?.avatar || defaultImg" class="ca-detail-back-avatar" @click="closeConversation">
                     <div class="ca-detail-center">
-                        <div class="ca-detail-name">{{ chatState.isTyping ? chatState.typingText : activeConv?.name }}</div>
+                        <div class="ca-detail-name">
+                            <span v-if="chatState.isTyping" style="font-size: 12px; font-weight: normal;">{{ chatState.typingText }}</span>
+                            <span v-else class="ca-detail-name-text">{{ activeConv?.name }}</span>
+                        </div>
                         <div class="ca-detail-status" v-if="!chatState.isTyping">
-                            <!-- 加入了状态小圆点 -->
                             <span class="ca-detail-status-dot" :style="{ background: activeConv?.statusColor || '#52c41a' }"></span>
                             <span class="ca-detail-status-text">{{ activeConv?.status || '在线' }}</span>
                         </div>
                     </div>
-                    <div class="ca-detail-star-btn"><i data-lucide="star" fill="currentColor"></i></div>
+                    <!-- 点击进入强大的设置面板 -->
+                    <div class="ca-detail-star-btn" @click="chatState.isDetailSettingsOpen = true; chatState.detailSettingsTab = 'chat';"><i data-lucide="star" fill="currentColor"></i></div>
                 </div>
-                <!-- 点击消息区域时收起底部面板 -->
+
                 <div class="ca-detail-messages" @click="chatState.showBottomMenu = false">
-                    <div class="ca-msg-row" v-for="msg in activeMessages" :key="msg.id" :class="{me: msg.senderId === chatState.currentUser.id}"><img :src="msg.senderId === chatState.currentUser.id ? chatState.currentUser.avatar : activeConv?.avatar" class="ca-msg-avatar"><div class="ca-msg-bubble">{{ msg.text }}</div></div>
+                    <!-- 循环渲染聊天消息，深度绑定美化设置 -->
+                    <div class="ca-msg-row" v-for="msg in activeMessages" :key="msg.id" 
+                         :class="{me: msg.senderId === chatState.currentUser.id}"
+                         :style="{ opacity: msg.senderId === chatState.currentUser.id ? activeConvSettings.beautify.meOpacity : activeConvSettings.beautify.opOpacity }">
+                        
+                        <img v-if="activeConvSettings.beautify.showAvatar" :src="msg.senderId === chatState.currentUser.id ? chatState.currentUser.avatar : activeConv?.avatar" class="ca-msg-avatar">
+                        
+                        <div style="display:flex; flex-direction:column; gap:4px; max-width:72%;" :style="{ alignItems: msg.senderId === chatState.currentUser.id ? 'flex-end' : 'flex-start' }">
+                            <span v-if="activeConvSettings.beautify.showName" style="font-size:10px; color:var(--text-sub);">{{ msg.senderId === chatState.currentUser.id ? chatState.currentUser.name : activeConv?.name }}</span>
+                            <span v-if="activeConvSettings.beautify.showTime && activeConvSettings.beautify.timePos === 'top'" style="font-size:9px; color:var(--text-sub);">{{ msg.time }}</span>
+                            
+                            <div style="display:flex; align-items:center; gap:6px;" :style="{ flexDirection: msg.senderId === chatState.currentUser.id ? 'row-reverse' : 'row' }">
+                                <div class="ca-msg-bubble" 
+                                     :style="{ 
+                                         background: msg.senderId === chatState.currentUser.id ? activeConvSettings.beautify.meBg : activeConvSettings.beautify.opBg, 
+                                         color: msg.senderId === chatState.currentUser.id ? activeConvSettings.beautify.meText : activeConvSettings.beautify.opText, 
+                                         borderRadius: msg.senderId === chatState.currentUser.id ? activeConvSettings.beautify.meRadius + 'px' : activeConvSettings.beautify.opRadius + 'px',
+                                         maxWidth: '100%' 
+                                     }"
+                                     @click="msg.showTrans = !msg.showTrans">
+                                    {{ msg.text }}
+                                    <div class="ca-msg-trans" v-if="msg.translation && msg.showTrans">{{ msg.translation }}</div>
+                                </div>
+                                <span v-if="activeConvSettings.beautify.showTime && activeConvSettings.beautify.timePos === 'right'" style="font-size:9px; color:var(--text-sub); flex-shrink:0;">{{ msg.time }}</span>
+                            </div>
+                            <span v-if="activeConvSettings.beautify.showTime && activeConvSettings.beautify.timePos === 'bottom'" style="font-size:9px; color:var(--text-sub);">{{ msg.time }}</span>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="ca-detail-bottom-area">
@@ -100,11 +133,8 @@
                         <div class="ca-detail-input-wrap"><input class="ca-detail-input" v-model="chatState.detailInput" @keyup.enter="sendMessage" @focus="chatState.showBottomMenu = false" placeholder="发送消息..."></div>
                         <button class="ca-detail-send-btn" @click="triggerApiReply">发送</button>
                     </div>
-                    
-                    <!-- 隐藏的底部面板 (滑动分页结构) -->
                     <div class="ca-detail-menu-panel" :class="{open: chatState.showBottomMenu}">
                         <div class="ca-menu-slider">
-                            <!-- 第一页：8个按键 -->
                             <div class="ca-menu-page">
                                 <div class="ca-menu-item" @click="alert('语音功能开发中')"><div class="ca-menu-icon"><i data-lucide="mic"></i></div><div class="ca-menu-text">语音</div></div>
                                 <div class="ca-menu-item" @click="alert('表情包功能开发中')"><div class="ca-menu-icon"><i data-lucide="smile"></i></div><div class="ca-menu-text">表情包</div></div>
@@ -115,7 +145,6 @@
                                 <div class="ca-menu-item" @click="alert('通话功能开发中')"><div class="ca-menu-icon"><i data-lucide="phone"></i></div><div class="ca-menu-text">通话</div></div>
                                 <div class="ca-menu-item" @click="alert('礼物功能开发中')"><div class="ca-menu-icon"><i data-lucide="box"></i></div><div class="ca-menu-text">礼物</div></div>
                             </div>
-                            <!-- 第二页：剩余按键 -->
                             <div class="ca-menu-page">
                                 <div class="ca-menu-item" @click="alert('位置功能开发中')"><div class="ca-menu-icon"><i data-lucide="map-pin"></i></div><div class="ca-menu-text">位置</div></div>
                                 <div class="ca-menu-item" @click="alert('收藏功能开发中')"><div class="ca-menu-icon"><i data-lucide="star"></i></div><div class="ca-menu-text">收藏</div></div>
@@ -127,6 +156,131 @@
                     </div>
                 </div>
             </div>
+
+            <!-- 详细聊天界面设置面板 -->
+            <div class="ca-ds-wrap" v-if="chatState.isDetailSettingsOpen">
+                <div class="ca-detail-header">
+                    <div class="ca-detail-star-btn" @click="chatState.isDetailSettingsOpen = false"><i data-lucide="chevron-left"></i></div>
+                    <div class="ca-detail-center" style="padding:0; align-items:center;"><div class="ca-detail-name-text" style="font-size:16px;">设置区</div></div>
+                    <div class="ca-detail-star-btn"></div>
+                </div>
+                <div class="ca-ds-tabs-container">
+                    <div class="ca-ds-tab" :class="{active: chatState.detailSettingsTab === 'chat'}" @click="chatState.detailSettingsTab = 'chat'">聊天设置</div>
+                    <div class="ca-ds-tab" :class="{active: chatState.detailSettingsTab === 'beautify'}" @click="chatState.detailSettingsTab = 'beautify'">美化设置</div>
+                    <div class="ca-ds-tab" :class="{active: chatState.detailSettingsTab === 'feature'}" @click="chatState.detailSettingsTab = 'feature'">功能设置</div>
+                    <div class="ca-ds-tab" :class="{active: chatState.detailSettingsTab === 'other'}" @click="chatState.detailSettingsTab = 'other'">其他设置</div>
+                </div>
+                
+                <div class="ca-ds-content">
+                    <div v-show="chatState.detailSettingsTab === 'chat'" style="display:flex; flex-direction:column; gap:16px;">
+                        <div class="c-card">
+                            <div class="c-card-title">对方账号资料</div>
+                            <div class="c-form-item"><label>真名 / 备注</label><input class="c-input" v-model="activeTargetPersona.name"></div>
+                            <div class="c-form-item"><label>Chat ID</label><input class="c-input" v-model="activeTargetPersona.chatAcc"></div>
+                            <div class="c-form-item"><label>人物设定</label><textarea class="c-textarea" v-model="activeTargetPersona.persona"></textarea></div>
+                        </div>
+                        <div class="c-card">
+                            <div class="c-card-title">我的账号资料</div>
+                            <div class="c-form-item"><label>真名 / 昵称</label><input class="c-input" v-model="chatState.currentUser.name"></div>
+                            <div class="c-form-item"><label>人物设定</label><textarea class="c-textarea" v-model="chatState.currentUser.persona"></textarea></div>
+                        </div>
+                        <div class="c-card">
+                            <div class="c-row" style="justify-content:space-between; width:100%;"><span class="c-card-title">情侣头像</span><input type="checkbox" v-model="activeConvSettings.coupleAvatar"></div>
+                            <textarea v-if="activeConvSettings.coupleAvatar" class="c-textarea" v-model="activeConvSettings.coupleAvatarDesc" placeholder="描述情侣头像的内容..."></textarea>
+                        </div>
+                        <div class="c-card">
+                            <div class="c-card-title">选择世界书 (注入背景)</div>
+                            <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                                <label v-for="wb in state.contactsData.worldbooks" :key="wb.id" style="display:flex; align-items:center; gap:4px; font-size:12px; color:var(--text-sub);">
+<input type="checkbox" :value="wb.id" v-model="activeConvSettings.worldbooks"> {{ wb.keywords || '未命名设定' }}
+</label>
+<div v-if="!state.contactsData.worldbooks || state.contactsData.worldbooks.length === 0" style="font-size:12px; color:var(--text-sub);">暂无世界书，请前往人脉APP添加</div>
+</div>
+</div>
+<div class="c-card">
+<div class="c-card-title">角色时间感知</div>
+<select class="c-select" v-model="activeConvSettings.timeMode">
+<option value="auto">无强制时间</option><option value="real">真实时间 (读取本地)</option><option value="virtual">虚拟时间 (自行设定)</option>
+</select>
+<input v-if="activeConvSettings.timeMode === 'virtual'" class="c-input" v-model="activeConvSettings.virtualTime" placeholder="例如：2042年冬夜...">
+</div>
+<div class="c-card">
+<div class="c-row" style="justify-content:space-between; width:100%;"><span class="c-card-title">外语学习模式</span><input type="checkbox" v-model="activeConvSettings.foreignMode"></div>
+<input v-if="activeConvSettings.foreignMode" class="c-input" v-model="activeConvSettings.foreignLang" placeholder="例如：English, 韩语, 日语...">
+</div>
+</div>
+                <div v-show="chatState.detailSettingsTab === 'beautify'" style="display:flex; flex-direction:column; gap:16px;">
+                    <input type="file" id="ca-bg-upload-input" class="hidden-file-input" accept="image/*" @change="handleBgUpload">
+                    <div class="c-card">
+                        <div class="c-card-title">聊天壁纸</div>
+                        <div style="display:flex; gap:8px;">
+                            <button class="c-btn-delete-ins" style="flex:1; background:var(--widget-bg-solid); color:var(--text-main);" @click="triggerBgUpload">本地上传</button>
+                            <button class="c-btn-delete-ins" style="flex:1; background:var(--widget-bg-solid); color:var(--text-main);" @click="() => { let url = prompt('URL:'); if(url) activeConvSettings.beautify.bg = url; }">网络URL</button>
+                            <button class="c-btn-delete-ins" style="flex:1;" @click="activeConvSettings.beautify.bg = ''">重置</button>
+                        </div>
+                    </div>
+                    <div class="ca-preview-box" :style="{ backgroundImage: `url(${activeConvSettings.beautify.bg})` }">
+                        <div class="ca-msg-row" :style="{ opacity: activeConvSettings.beautify.opOpacity }">
+                            <img v-if="activeConvSettings.beautify.showAvatar" :src="activeTargetPersona.avatar || defaultImg" class="ca-msg-avatar">
+                            <div style="display:flex; flex-direction:column; gap:4px;">
+                                <span v-if="activeConvSettings.beautify.showName" style="font-size:10px; color:var(--text-sub);">{{ activeTargetPersona.name }}</span>
+                                <span v-if="activeConvSettings.beautify.showTime && activeConvSettings.beautify.timePos === 'top'" style="font-size:9px; color:var(--text-sub);">10:00 AM</span>
+                                <div style="display:flex; align-items:center; gap:6px;">
+                                    <div class="ca-msg-bubble" :style="{ background: activeConvSettings.beautify.opBg, color: activeConvSettings.beautify.opText, borderRadius: activeConvSettings.beautify.opRadius + 'px' }">你好！这是对方的消息预览。</div>
+                                    <span v-if="activeConvSettings.beautify.showTime && activeConvSettings.beautify.timePos === 'right'" style="font-size:9px; color:var(--text-sub);">10:00</span>
+                                </div>
+                                <span v-if="activeConvSettings.beautify.showTime && activeConvSettings.beautify.timePos === 'bottom'" style="font-size:9px; color:var(--text-sub);">10:00 AM</span>
+                            </div>
+                        </div>
+                        <div class="ca-msg-row me" :style="{ opacity: activeConvSettings.beautify.meOpacity }">
+                            <img v-if="activeConvSettings.beautify.showAvatar" :src="chatState.currentUser.avatar || defaultImg" class="ca-msg-avatar">
+                            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                                <span v-if="activeConvSettings.beautify.showName" style="font-size:10px; color:var(--text-sub);">{{ chatState.currentUser.name }}</span>
+                                <span v-if="activeConvSettings.beautify.showTime && activeConvSettings.beautify.timePos === 'top'" style="font-size:9px; color:var(--text-sub);">10:01 AM</span>
+                                <div style="display:flex; align-items:center; gap:6px; flex-direction:row-reverse;">
+                                    <div class="ca-msg-bubble" :style="{ background: activeConvSettings.beautify.meBg, color: activeConvSettings.beautify.meText, borderRadius: activeConvSettings.beautify.meRadius + 'px' }">你好呀！这是我的消息预览。</div>
+                                    <span v-if="activeConvSettings.beautify.showTime && activeConvSettings.beautify.timePos === 'right'" style="font-size:9px; color:var(--text-sub);">10:01</span>
+                                </div>
+                                <span v-if="activeConvSettings.beautify.showTime && activeConvSettings.beautify.timePos === 'bottom'" style="font-size:9px; color:var(--text-sub);">10:01 AM</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="c-card">
+                        <div class="c-card-title">组件开关</div>
+                        <div class="c-row" style="justify-content:space-between; width:100%;"><label>显示头像</label><input type="checkbox" v-model="activeConvSettings.beautify.showAvatar"></div>
+                        <div class="c-row" style="justify-content:space-between; width:100%;"><label>显示昵称</label><input type="checkbox" v-model="activeConvSettings.beautify.showName"></div>
+                        <div class="c-row" style="justify-content:space-between; width:100%;"><label>显示时间</label><input type="checkbox" v-model="activeConvSettings.beautify.showTime"></div>
+                        <div class="c-form-item" v-if="activeConvSettings.beautify.showTime">
+                            <label>时间位置</label>
+                            <select class="c-select" v-model="activeConvSettings.beautify.timePos">
+                                <option value="top">上方</option><option value="bottom">下方</option><option value="right">气泡旁</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="c-card">
+                        <div class="c-card-title">对方气泡</div>
+                        <div class="c-row"><span class="c-label">背景色</span><input type="color" v-model="activeConvSettings.beautify.opBg"></div>
+                        <div class="c-row"><span class="c-label">文字色</span><input type="color" v-model="activeConvSettings.beautify.opText"></div>
+                        <div class="c-row"><span class="c-label">圆角</span><input type="range" v-model="activeConvSettings.beautify.opRadius" min="0" max="30" step="1"></div>
+                        <div class="c-row"><span class="c-label">透明度</span><input type="range" v-model="activeConvSettings.beautify.opOpacity" min="0.1" max="1" step="0.05"></div>
+                    </div>
+                    <div class="c-card">
+                        <div class="c-card-title">我的气泡</div>
+                        <div class="c-row"><span class="c-label">背景色</span><input type="color" v-model="activeConvSettings.beautify.meBg"></div>
+                        <div class="c-row"><span class="c-label">文字色</span><input type="color" v-model="activeConvSettings.beautify.meText"></div>
+                        <div class="c-row"><span class="c-label">圆角</span><input type="range" v-model="activeConvSettings.beautify.meRadius" min="0" max="30" step="1"></div>
+                        <div class="c-row"><span class="c-label">透明度</span><input type="range" v-model="activeConvSettings.beautify.meOpacity" min="0.1" max="1" step="0.05"></div>
+                    </div>
+                    <div class="c-card">
+                        <div class="c-card-title">自定义 CSS</div>
+                        <textarea class="c-textarea" v-model="activeConvSettings.beautify.customCss" placeholder="输入纯正 css 强制修改全局样式"></textarea>
+                    </div>
+                </div>
+
+                <div v-show="chatState.detailSettingsTab === 'feature'" class="ca-ds-page"><div class="c-empty">功能设置开发中</div></div>
+                <div v-show="chatState.detailSettingsTab === 'other'" class="ca-ds-page"><div class="c-empty">其他设置开发中</div></div>
+            </div>
+        </div>
 
             <!-- 我的设置全屏页 -->
             <div class="ca-settings-page" v-if="chatState.showSettings"><div class="ca-settings-header"><div class="ca-settings-back" @click="chatState.settingsPage === 'home' ? closeMySettings() : openSettingsPage('home')"><i data-lucide="chevron-left" style="width:20px;"></i><span>{{ chatState.settingsPage === 'home' ? '返回' : '我的设置' }}</span></div><div class="ca-settings-title">{{ chatState.settingsPage === 'home' ? '我的设置' : chatState.settingsPage === 'profile' ? '资料编辑' : chatState.settingsPage === 'favorites' ? '收藏' : '钱包' }}</div><div class="ca-settings-header-right"></div></div><div class="ca-settings-body" v-if="chatState.settingsPage === 'home'"><div class="ca-settings-hero" @click="triggerMySettingsBgUpload" :style="{ backgroundImage: currentProfile?.bg ? `url(${currentProfile.bg})` : (chatState.currentUser?.avatar ? `url(${chatState.currentUser.avatar})` : 'none') }"></div><div class="ca-account-card-wrap"><div class="ca-account-card"><div class="ca-account-main"><img :src="chatState.currentUser?.avatar || defaultImg" class="ca-account-avatar" @click="triggerMyAvatarUpload"><div class="ca-account-text"><div class="ca-account-name-row"><input class="ca-account-name-input" v-model="currentProfile.nickname"><div class="ca-switch-btn" @click.stop="toggleSwitchMenu">切换账号</div></div><input class="ca-account-sign-input" v-model="currentProfile.signature" placeholder="写一句个性签名吧"></div><div class="ca-switch-menu" v-if="chatState.showSwitchMenu"><div class="ca-switch-item" v-for="acc in accountSwitchList" :key="acc.id" @click="switchAccount(acc.id)"><img :src="acc.avatar || defaultImg" class="ca-switch-avatar"><div class="ca-switch-info"><div class="ca-switch-name">{{ acc.name }}</div><div class="ca-switch-id">{{ acc.chatAcc }}</div></div></div></div></div></div></div><div class="ca-settings-list"><div class="ca-setting-item" @click="openSettingsPage('profile')"><div class="ca-setting-item-left"><span class="ca-setting-item-title">资料编辑</span><span class="ca-setting-item-sub">修改 Chat 资料与对外展示设置</span></div><i data-lucide="chevron-right" style="width:18px; color:var(--text-sub);"></i></div><div class="ca-setting-item" @click="openSettingsPage('favorites')"><div class="ca-setting-item-left"><span class="ca-setting-item-title">收藏</span><span class="ca-setting-item-sub">查看收藏的消息等内容</span></div><i data-lucide="chevron-right" style="width:18px; color:var(--text-sub);"></i></div><div class="ca-setting-item" @click="openSettingsPage('wallet')"><div class="ca-setting-item-left"><span class="ca-setting-item-title">钱包</span><span class="ca-setting-item-sub">查看 Chat 钱包余额</span></div><i data-lucide="chevron-right" style="width:18px; color:var(--text-sub);"></i></div></div></div><div class="ca-subpage" v-else-if="chatState.settingsPage === 'profile'"><div class="ca-card"><div class="ca-card-title">账号资料</div><div class="ca-form-item"><label>Chat ID</label><input class="ca-form-input" v-model="chatState.currentUser.chatAcc" placeholder="输入 Chat ID"></div><div class="ca-form-item"><label>密码</label><input class="ca-form-input" type="password" v-model="chatState.currentUser.chatPwd" placeholder="输入密码"></div><div class="ca-form-item"><label>昵称</label><input class="ca-form-input" v-model="currentProfile.nickname" placeholder="输入昵称"></div><div class="ca-form-item"><label>个性签名</label><textarea class="ca-form-textarea" v-model="currentProfile.signature" placeholder="输入个性签名"></textarea></div><div class="ca-form-item"><label>性别</label><input class="ca-form-input" v-model="currentProfile.gender" placeholder="输入性别"></div><div class="ca-form-item"><label>生日</label><input class="ca-form-input" v-model="currentProfile.birthday" placeholder="例如 2000-01-01"></div><div class="ca-form-item"><label>电话号</label><input class="ca-form-input" v-model="chatState.currentUser.phone" placeholder="输入电话号"></div><div class="ca-form-item"><label>邮箱</label><input class="ca-form-input" v-model="chatState.currentUser.email" placeholder="输入邮箱"></div><div class="ca-form-item"><label>我的设定</label><textarea class="ca-form-textarea" v-model="chatState.currentUser.persona" placeholder="输入我的人物设定..."></textarea></div><div style="text-align:center; font-size:11px; color:var(--text-sub); line-height:1.6; margin-top:2px;">其他 Chat 用户可知晓你已填写的资料</div><button class="ca-save-btn" @click="saveProfileEdit">保存修改</button></div></div><div class="ca-subpage" v-else-if="chatState.settingsPage === 'favorites'"><div class="ca-card"><div class="ca-card-title">收藏内容</div><div v-if="myFavorites.length === 0" class="ca-empty-box">暂无收藏的消息或内容</div><div class="ca-list" v-else><div class="ca-list-item" v-for="(fav, index) in myFavorites" :key="index"><div class="ca-item-info"><div class="ca-item-name">{{ fav.title || '收藏内容' }}</div><div class="ca-item-msg">{{ fav.content || '' }}</div></div></div></div></div></div><div class="ca-subpage" v-else-if="chatState.settingsPage === 'wallet'"><div class="ca-card"><div class="ca-card-title">Chat 钱包</div><div class="ca-wallet-balance">¥ {{ Number(myWallet.balance || 0).toFixed(2) }}</div><div class="ca-wallet-sub">当前钱包余额</div></div></div></div>
